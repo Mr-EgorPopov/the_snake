@@ -47,7 +47,7 @@ class GameObject:
     """Описание родительского класса"""
 
     def __init__(self) -> None:
-        self.position = [((SCREEN_WIDTH // 2), (SCREEN_HEIGHT // 2))]
+        self.position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
         self.body_color = None
 
     def draw(self) -> None:
@@ -115,8 +115,8 @@ class Snake(GameObject):
         self.direction = RIGHT
         self.next_direction = None
         self.last = None
-        self.position = []
-        self.positions = [((SCREEN_WIDTH // 2), (SCREEN_HEIGHT // 2))]
+        self.position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+        self.positions = [self.position]
 
     def update_direction(self) -> None:
         """Обновление информации о направлении движения"""
@@ -125,7 +125,7 @@ class Snake(GameObject):
             self.next_direction = None
             return self.direction
 
-    def get_head_position(self) -> None:
+    def get_head_position(self):
         """Получаем текущую позиция головы змеюки"""
         return self.positions[0]
 
@@ -133,33 +133,34 @@ class Snake(GameObject):
         """Заставляем змеюку двигаться в стиле диско"""
         self.get_head_position()
         d_x, d_y = self.direction
-        d_x = d_x * GRID_SIZE
-        d_y = d_y * GRID_SIZE
-        result = (self.positions[0][0] + d_x, self.positions[0][1] + d_y)
+        d_x, d_y = d_x * GRID_SIZE, d_y * GRID_SIZE
+        result = (
+            self.get_head_position()[0] + d_x,
+            self.get_head_position()[1] + d_y
+        )
         self.positions.insert(0, result)
-        """Проверка на выход за границы поля"""
-        if self.positions[0][0] > 620:
+        # Проверка на выход за границы поля
+        if self.get_head_position()[0] > 620:
             self.positions.pop(0)
-            self.positions.insert(0, (0, self.positions[0][1]))
+            self.positions.insert(0, (0, self.get_head_position()[1]))
 
-        elif self.positions[0][0] < 0:
+        elif self.get_head_position()[0] < 0:
             self.positions.pop(0)
-            self.positions.insert(0, (620, self.positions[0][1]))
+            self.positions.insert(0, (620, self.get_head_position()[1]))
 
-        elif self.positions[0][1] > 460:
+        elif self.get_head_position()[1] > 460:
             self.positions.pop(0)
-            self.positions.insert(0, (self.positions[0][0], 0))
+            self.positions.insert(0, (self.get_head_position()[0], 0))
 
-        elif self.positions[0][1] < 0:
+        elif self.get_head_position()[1] < 0:
             self.positions.pop(0)
-            self.positions.insert(0, (self.positions[0][0], 460))
+            self.positions.insert(0, (self.get_head_position()[0], 460))
         if len(self.positions) > self.length:
-            self.last = self.positions[-1]
-            self.positions.pop()
+            self.last = self.positions.pop()
 
     def draw(self):
         """Метод для отрисовки змейки"""
-        head_rect = pg.Rect(self.positions[0], (GRID_SIZE, GRID_SIZE))
+        head_rect = pg.Rect(self.get_head_position(), (GRID_SIZE, GRID_SIZE))
         pg.draw.rect(screen, self.body_color, head_rect)
         pg.draw.rect(screen, BORDER_COLOR, head_rect, 1)
         if self.last:
@@ -168,7 +169,6 @@ class Snake(GameObject):
 
     def reset(self) -> None:
         """Возвращение змейки в дефолтное положение"""
-        screen.fill(BOARD_BACKGROUND_COLOR)
         self.length = 1
         self.direction = choice([UP, DOWN, LEFT, RIGHT])
         self.positions = [(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)]
@@ -192,41 +192,45 @@ def handle_keys(game_object):
 
 
 def main():
-    """Инициализацияя pg"""
+    """Основная логика игры"""
+    # Инициализацияя pg
     pg.init()
-    """Создание экземпляров класса"""
+    # Создание экземпляров класса
     apple = Apple()
     snake = Snake()
     stone = Stone()
-    """Описания основной логики игры"""
+    # Описание основной логики игры
     while True:
         clock.tick(SPEED)
         handle_keys(snake)
-        apple.draw()
-        stone.draw()
-        snake.draw()
         snake.move()
+
         snake.update_direction()
-        """Проверка и пересоздание камня, если оно
-           создалось в яблоке"""
+        # Проверка и пересоздание камня, если оно
+        # создалось в яблоке
         if stone.position == apple.position:
             stone.randomize_position()
-            """Проверка и пересоздание яблока, если оно
-               сьедено головой змейки и 'недопуск'
-               создания яблока в самой змейке"""
-        if apple.position == snake.positions[0]:
+            # Проверка и пересоздание яблока, если оно
+            # сьедено головой змейки и 'недопуск'
+            # создания яблока в самой змейке
+        elif apple.position == snake.positions[0]:
             apple.randomize_position()
             if apple.position == snake.positions[0]:
                 apple.position = (randint(0, 31) * GRID_SIZE,
                                   randint(0, 23) * GRID_SIZE
                                   )
             snake.length += 1
-        """Проверка на столкновение с телом"""
-        if snake.positions[0] in snake.positions[1:]:
+        # Проверка на столкновение с телом
+        elif snake.positions[0] in snake.positions[1:]:
+            screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
-        """Проверка на столкновение с камнем"""
-        if snake.positions[0] == stone.position:
+        # Проверка на столкновение с камнем
+        elif snake.positions[0] == stone.position:
+            screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
+        snake.draw()
+        stone.draw()
+        apple.draw()
         pg.display.update()
 
 
