@@ -111,12 +111,11 @@ class Snake(GameObject):
     def __init__(self):
         super().__init__()
         self.body_color = SNAKE_COLOR
-        self.length = 1
+        self.reset()
         self.direction = RIGHT
         self.next_direction = None
         self.last = None
         self.position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
-        self.positions = [self.position]
 
     def update_direction(self) -> None:
         """Обновление информации о направлении движения"""
