@@ -171,7 +171,7 @@ class Snake(GameObject):
         """Возвращение змейки в дефолтное положение"""
         self.length = 1
         self.direction = choice([UP, DOWN, LEFT, RIGHT])
-        self.positions = [(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)]
+        self.positions = [self.position]
 
 
 def handle_keys(game_object):
