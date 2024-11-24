@@ -77,12 +77,17 @@ class Apple(GameObject):
         pg.draw.rect(screen, self.body_color, rect)
         pg.draw.rect(screen, BORDER_COLOR, rect, 1)
 
-    def randomize_position(self):
+    def randomize_position(self, *args):
         """Рандомайзер для позиционирования яблока"""
-        self.position = (
-            randint(zero_cell, x_cell) * GRID_SIZE,
-            randint(zero_cell, y_cell) * GRID_SIZE
-        )
+        while True:
+            new_position = (
+                randint(zero_cell, x_cell) * GRID_SIZE,
+                randint(zero_cell, y_cell) * GRID_SIZE
+            )
+
+            if new_position != args:
+                self.position = new_position
+                break
 
 
 class Stone(GameObject):
@@ -93,12 +98,17 @@ class Stone(GameObject):
         self.body_color = STONE_COLOR
         self.randomize_position()
 
-    def randomize_position(self):
+    def randomize_position(self, *args):
         """Метод для рандомизации позиционирования булыжника"""
-        self.position = (
-            randint(zero_cell, x_cell) * GRID_SIZE,
-            randint(zero_cell, y_cell) * GRID_SIZE
-        )
+        while True:
+            new_position = (
+                randint(zero_cell, x_cell) * GRID_SIZE,
+                randint(zero_cell, y_cell) * GRID_SIZE
+            )
+
+            if new_position != args:
+                self.position = new_position
+                break
 
     def draw(self):
         """Отрисовка булыжника"""
@@ -193,13 +203,15 @@ def main():
         handle_keys(snake)
         snake.move()
         snake.update_direction(snake.next_direction)
+        occupied_for_apple = [stone.position, snake.positions]
+        occupied_for_stone = [snake.positions, apple.position]
         if stone.position == apple.position:
-            stone.randomize_position()
+            stone.randomize_position(occupied_for_stone)
         elif apple.position == snake.get_head_position():
-            apple.randomize_position()
+            apple.randomize_position(occupied_for_apple)
             if apple.position == snake.get_head_position():
-                apple.position = (randint(0, x_cell) * GRID_SIZE,
-                                  randint(0, y_cell) * GRID_SIZE
+                apple.position = (randint(zero_cell, x_cell) * GRID_SIZE,
+                                  randint(zero_cell, y_cell) * GRID_SIZE
                                   )
             snake.length += 1
         elif snake.positions[0] in snake.positions[1:]:
