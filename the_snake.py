@@ -17,6 +17,15 @@ RIGHT = (1, 0)
 # Цвет фона - черный:
 BOARD_BACKGROUND_COLOR = (0, 0, 0)
 
+# Начальная клетка по оси х и у
+zero_cell = 0
+
+# Крайняя клетка по оси х
+x_cell = 31
+
+# Крайняя клетка по оси у
+y_cell = 23
+
 # Цвет границы ячейки
 BORDER_COLOR = (93, 216, 228)
 
@@ -42,7 +51,6 @@ pg.display.set_caption('Змейка')
 clock = pg.time.Clock()
 
 
-# Тут опишите все классы игры.
 class GameObject:
     """Описание родительского класса"""
 
@@ -61,10 +69,7 @@ class Apple(GameObject):
     def __init__(self):
         super().__init__()
         self.body_color = APPLE_COLOR
-        self.position = (
-            randint(0, 31) * GRID_SIZE,
-            randint(0, 23) * GRID_SIZE
-        )
+        self.randomize_position()
 
     def draw(self):
         """Отрисовка яблока"""
@@ -75,8 +80,8 @@ class Apple(GameObject):
     def randomize_position(self):
         """Рандомайзер для позиционирования яблока"""
         self.position = (
-            randint(0, 31) * GRID_SIZE,
-            randint(0, 23) * GRID_SIZE
+            randint(zero_cell, x_cell) * GRID_SIZE,
+            randint(zero_cell, y_cell) * GRID_SIZE
         )
 
 
@@ -86,16 +91,13 @@ class Stone(GameObject):
     def __init__(self):
         super().__init__()
         self.body_color = STONE_COLOR
-        self.position = (
-            randint(0, 31) * GRID_SIZE,
-            randint(0, 23) * GRID_SIZE
-        )
+        self.randomize_position()
 
     def randomize_position(self):
         """Метод для рандомизации позиционирования булыжника"""
         self.position = (
-            randint(0, 31) * GRID_SIZE,
-            randint(0, 23) * GRID_SIZE
+            randint(zero_cell, x_cell) * GRID_SIZE,
+            randint(zero_cell, y_cell) * GRID_SIZE
         )
 
     def draw(self):
@@ -113,15 +115,11 @@ class Snake(GameObject):
         self.body_color = SNAKE_COLOR
         self.reset()
         self.direction = RIGHT
-        self.next_direction = None
-        self.last = None
-        self.position = (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
 
-    def update_direction(self) -> None:
+    def update_direction(self, next_direction) -> None:
         """Обновление информации о направлении движения"""
-        if self.next_direction:
-            self.direction = self.next_direction
-            self.next_direction = None
+        if next_direction is not None:
+            self.direction = next_direction
             return self.direction
 
     def get_head_position(self):
@@ -130,30 +128,22 @@ class Snake(GameObject):
 
     def move(self) -> None:
         """Заставляем змеюку двигаться в стиле диско"""
-        self.get_head_position()
+        self.position_of_head = self.get_head_position()
         d_x, d_y = self.direction
         d_x, d_y = d_x * GRID_SIZE, d_y * GRID_SIZE
         result = (
-            self.get_head_position()[0] + d_x,
-            self.get_head_position()[1] + d_y
+            self.position_of_head[0] + d_x,
+            self.position_of_head[1] + d_y
         )
         self.positions.insert(0, result)
         # Проверка на выход за границы поля
-        if self.get_head_position()[0] > 620:
-            self.positions.pop(0)
-            self.positions.insert(0, (0, self.get_head_position()[1]))
+        self.new_position = (
+            (self.get_head_position()[0] + SCREEN_WIDTH) % SCREEN_WIDTH,
+            (self.get_head_position()[1] + SCREEN_HEIGHT) % SCREEN_HEIGHT
+        )
+        self.positions.pop(0)
+        self.positions.insert(0, self.new_position)
 
-        elif self.get_head_position()[0] < 0:
-            self.positions.pop(0)
-            self.positions.insert(0, (620, self.get_head_position()[1]))
-
-        elif self.get_head_position()[1] > 460:
-            self.positions.pop(0)
-            self.positions.insert(0, (self.get_head_position()[0], 0))
-
-        elif self.get_head_position()[1] < 0:
-            self.positions.pop(0)
-            self.positions.insert(0, (self.get_head_position()[0], 460))
         if len(self.positions) > self.length:
             self.last = self.positions.pop()
 
@@ -166,11 +156,13 @@ class Snake(GameObject):
             last_rect = pg.Rect(self.last, (GRID_SIZE, GRID_SIZE))
             pg.draw.rect(screen, BOARD_BACKGROUND_COLOR, last_rect)
 
-    def reset(self) -> None:
+    def reset(self):
         """Возвращение змейки в дефолтное положение"""
         self.length = 1
         self.direction = choice([UP, DOWN, LEFT, RIGHT])
         self.positions = [self.position]
+        self.next_direction = None
+        self.last = None
 
 
 def handle_keys(game_object):
@@ -192,39 +184,28 @@ def handle_keys(game_object):
 
 def main():
     """Основная логика игры"""
-    # Инициализацияя pg
     pg.init()
-    # Создание экземпляров класса
     apple = Apple()
     snake = Snake()
     stone = Stone()
-    # Описание основной логики игры
     while True:
         clock.tick(SPEED)
         handle_keys(snake)
         snake.move()
-
-        snake.update_direction()
-        # Проверка и пересоздание камня, если оно
-        # создалось в яблоке
+        snake.update_direction(snake.next_direction)
         if stone.position == apple.position:
             stone.randomize_position()
-            # Проверка и пересоздание яблока, если оно
-            # сьедено головой змейки и 'недопуск'
-            # создания яблока в самой змейке
-        elif apple.position == snake.positions[0]:
+        elif apple.position == snake.get_head_position():
             apple.randomize_position()
-            if apple.position == snake.positions[0]:
-                apple.position = (randint(0, 31) * GRID_SIZE,
-                                  randint(0, 23) * GRID_SIZE
+            if apple.position == snake.get_head_position():
+                apple.position = (randint(0, x_cell) * GRID_SIZE,
+                                  randint(0, y_cell) * GRID_SIZE
                                   )
             snake.length += 1
-        # Проверка на столкновение с телом
         elif snake.positions[0] in snake.positions[1:]:
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
-        # Проверка на столкновение с камнем
-        elif snake.positions[0] == stone.position:
+        elif snake.position_of_head == stone.position:
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
         snake.draw()
