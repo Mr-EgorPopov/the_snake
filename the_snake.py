@@ -21,10 +21,10 @@ BOARD_BACKGROUND_COLOR = (0, 0, 0)
 DEFAULT_CELL = (0, 0)
 
 # Крайняя клетка по оси х
-FINISH_CELL_X = (SCREEN_WIDTH // GRID_SIZE - 1)
+FINISH_CELL_X = ((SCREEN_WIDTH - GRID_SIZE) // GRID_SIZE)
 
 # Крайняя клетка по оси у
-FINISH_CELL_Y = (SCREEN_HEIGHT // GRID_SIZE - 1)
+FINISH_CELL_Y = ((SCREEN_HEIGHT - GRID_SIZE) // GRID_SIZE)
 
 # Цвет границы ячейки
 BORDER_COLOR = (93, 216, 228)
