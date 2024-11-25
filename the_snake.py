@@ -190,10 +190,10 @@ def main():
     pg.init()
     snake = Snake()
     apple = Apple(DEFAULT_CELL)
-    occupied_position_stone = apple.position, *snake.positions
+    occupied_position_stone = (apple.position, *snake.positions)
     stone = Stone(occupied_position_stone)
     while True:
-        occupied_position_apple = stone.position, *snake.positions
+        occupied_position_apple = (stone.position, *snake.positions)
         clock.tick(SPEED)
         handle_keys(snake)
         snake.move()
