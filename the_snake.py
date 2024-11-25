@@ -66,13 +66,12 @@ class GameObject:
 class Apple(GameObject):
     """Описание класса для яблока"""
 
-    def __init__(self, stone_position=DEFAULT_CELL,
-                 snake_position=DEFAULT_CELL):
+    def __init__(self, occupied_position_apple=[]):
         super().__init__()
         self.body_color = APPLE_COLOR
-        self.randomize_position(stone_position, snake_position)
+        self.randomize_position(occupied_position_apple)
 
-    def randomize_position(self, stone_position, snake_position):
+    def randomize_position(self, occupied_position):
         """Рандомайзер для позиционирования яблока"""
         while True:
             new_position = (
@@ -80,7 +79,7 @@ class Apple(GameObject):
                 randint(0, FINISH_CELL_Y) * GRID_SIZE
             )
 
-            if new_position != stone_position or snake_position:
+            if new_position not in occupied_position:
                 self.position = new_position
                 break
 
@@ -94,13 +93,12 @@ class Apple(GameObject):
 class Stone(GameObject):
     """Создаем класс для булыжника"""
 
-    def __init__(self, apple_position=DEFAULT_CELL,
-                 snake_position=DEFAULT_CELL):
+    def __init__(self, occupied_position_stone=[]):
         super().__init__()
         self.body_color = STONE_COLOR
-        self.randomize_position(apple_position, snake_position)
+        self.randomize_position(occupied_position_stone)
 
-    def randomize_position(self, apple_position, snake_position):
+    def randomize_position(self, occupied_position_stone):
         """Метод для рандомизации позиционирования булыжника"""
         while True:
             new_position = (
@@ -108,7 +106,7 @@ class Stone(GameObject):
                 randint(0, FINISH_CELL_Y) * GRID_SIZE
             )
 
-            if new_position != apple_position or snake_position:
+            if new_position not in occupied_position_stone:
                 self.position = new_position
                 break
 
@@ -191,24 +189,28 @@ def main():
     """Основная логика игры"""
     pg.init()
     snake = Snake()
-    apple = Apple()
-    stone = Stone(apple.position, snake.get_head_position())
+    apple = Apple(DEFAULT_CELL)
+    occupied_position_stone = apple.position, *snake.positions
+    stone = Stone(occupied_position_stone)
     while True:
+        occupied_position_apple = stone.position, *snake.positions
         clock.tick(SPEED)
         handle_keys(snake)
         snake.move()
         snake.update_direction(snake.next_direction)
         if apple.position == snake.get_head_position():
-            apple.randomize_position(stone.position, snake.positions)
+            apple.randomize_position(occupied_position_apple)
             snake.length += 1
         elif snake.get_head_position() in snake.positions[1:]:
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
+            apple.randomize_position(occupied_position_apple)
+            stone.randomize_position(occupied_position_stone)
         elif snake.get_head_position() == stone.position:
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
-            apple.randomize_position(stone.position, snake.positions)
-            stone.randomize_position(apple.position, snake.get_head_position())
+            apple.randomize_position(occupied_position_apple)
+            stone.randomize_position(occupied_position_stone)
 
         snake.draw()
         stone.draw()
