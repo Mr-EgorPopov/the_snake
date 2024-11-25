@@ -17,14 +17,14 @@ RIGHT = (1, 0)
 # Цвет фона - черный:
 BOARD_BACKGROUND_COLOR = (0, 0, 0)
 
-# Начальная клетка по оси х и у
-zero_cell = 0
+# Координаты по-умолчанию для создаваемых обьектов(яблоко, камень)
+DEFAULT_CELL = (0, 0)
 
 # Крайняя клетка по оси х
-x_cell = 31
+FINISH_CELL_X = SCREEN_WIDTH // GRID_SIZE
 
 # Крайняя клетка по оси у
-y_cell = 23
+FINISH_CELL_Y = SCREEN_HEIGHT // GRID_SIZE
 
 # Цвет границы ячейки
 BORDER_COLOR = (93, 216, 228)
@@ -66,10 +66,23 @@ class GameObject:
 class Apple(GameObject):
     """Описание класса для яблока"""
 
-    def __init__(self):
+    def __init__(self, stone_position=DEFAULT_CELL,
+                 snake_position=DEFAULT_CELL):
         super().__init__()
         self.body_color = APPLE_COLOR
-        self.randomize_position()
+        self.randomize_position(stone_position, snake_position)
+
+    def randomize_position(self, stone_position, snake_position):
+        """Рандомайзер для позиционирования яблока"""
+        while True:
+            new_position = (
+                randint(0, FINISH_CELL_X) * GRID_SIZE,
+                randint(0, FINISH_CELL_Y) * GRID_SIZE
+            )
+
+            if new_position != stone_position or snake_position:
+                self.position = new_position
+                break
 
     def draw(self):
         """Отрисовка яблока"""
@@ -77,36 +90,25 @@ class Apple(GameObject):
         pg.draw.rect(screen, self.body_color, rect)
         pg.draw.rect(screen, BORDER_COLOR, rect, 1)
 
-    def randomize_position(self, *args):
-        """Рандомайзер для позиционирования яблока"""
-        while True:
-            new_position = (
-                randint(zero_cell, x_cell) * GRID_SIZE,
-                randint(zero_cell, y_cell) * GRID_SIZE
-            )
-
-            if new_position != args:
-                self.position = new_position
-                break
-
 
 class Stone(GameObject):
     """Создаем класс для булыжника"""
 
-    def __init__(self):
+    def __init__(self, apple_position=DEFAULT_CELL,
+                 snake_position=DEFAULT_CELL):
         super().__init__()
         self.body_color = STONE_COLOR
-        self.randomize_position()
+        self.randomize_position(apple_position, snake_position)
 
-    def randomize_position(self, *args):
+    def randomize_position(self, apple_position, snake_position):
         """Метод для рандомизации позиционирования булыжника"""
         while True:
             new_position = (
-                randint(zero_cell, x_cell) * GRID_SIZE,
-                randint(zero_cell, y_cell) * GRID_SIZE
+                randint(0, FINISH_CELL_X) * GRID_SIZE,
+                randint(0, FINISH_CELL_Y) * GRID_SIZE
             )
 
-            if new_position != args:
+            if new_position != apple_position or snake_position:
                 self.position = new_position
                 break
 
@@ -138,21 +140,14 @@ class Snake(GameObject):
 
     def move(self) -> None:
         """Заставляем змеюку двигаться в стиле диско"""
-        self.position_of_head = self.get_head_position()
+        head = self.get_head_position()
         d_x, d_y = self.direction
         d_x, d_y = d_x * GRID_SIZE, d_y * GRID_SIZE
-        result = (
-            self.position_of_head[0] + d_x,
-            self.position_of_head[1] + d_y
+        new_position = (
+            (head[0] + d_x + SCREEN_WIDTH) % SCREEN_WIDTH,
+            (head[1] + d_y + SCREEN_HEIGHT) % SCREEN_HEIGHT
         )
-        self.positions.insert(0, result)
-        # Проверка на выход за границы поля
-        self.new_position = (
-            (self.get_head_position()[0] + SCREEN_WIDTH) % SCREEN_WIDTH,
-            (self.get_head_position()[1] + SCREEN_HEIGHT) % SCREEN_HEIGHT
-        )
-        self.positions.pop(0)
-        self.positions.insert(0, self.new_position)
+        self.positions.insert(0, new_position)
 
         if len(self.positions) > self.length:
             self.last = self.positions.pop()
@@ -195,31 +190,26 @@ def handle_keys(game_object):
 def main():
     """Основная логика игры"""
     pg.init()
-    apple = Apple()
     snake = Snake()
-    stone = Stone()
+    apple = Apple()
+    stone = Stone(apple.position, snake.get_head_position())
     while True:
         clock.tick(SPEED)
         handle_keys(snake)
         snake.move()
         snake.update_direction(snake.next_direction)
-        occupied_for_apple = [stone.position, snake.positions]
-        occupied_for_stone = [snake.positions, apple.position]
-        if stone.position == apple.position:
-            stone.randomize_position(occupied_for_stone)
-        elif apple.position == snake.get_head_position():
-            apple.randomize_position(occupied_for_apple)
-            if apple.position == snake.get_head_position():
-                apple.position = (randint(zero_cell, x_cell) * GRID_SIZE,
-                                  randint(zero_cell, y_cell) * GRID_SIZE
-                                  )
+        if apple.position == snake.get_head_position():
+            apple.randomize_position(stone.position, snake.positions)
             snake.length += 1
-        elif snake.positions[0] in snake.positions[1:]:
+        elif snake.get_head_position() in snake.positions[1:]:
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
-        elif snake.position_of_head == stone.position:
+        elif snake.get_head_position() == stone.position:
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
+            apple.randomize_position(stone.position, snake.positions)
+            stone.randomize_position(apple.position, snake.get_head_position())
+
         snake.draw()
         stone.draw()
         apple.draw()
