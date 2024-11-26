@@ -66,7 +66,7 @@ class GameObject:
 class Apple(GameObject):
     """Описание класса для яблока"""
 
-    def __init__(self, occupied_position_apple=[]):
+    def __init__(self, occupied_position_apple=None):
         super().__init__()
         self.body_color = APPLE_COLOR
         self.randomize_position(occupied_position_apple)
@@ -93,7 +93,7 @@ class Apple(GameObject):
 class Stone(GameObject):
     """Создаем класс для булыжника"""
 
-    def __init__(self, occupied_position_stone=[]):
+    def __init__(self, occupied_position_stone=None):
         super().__init__()
         self.body_color = STONE_COLOR
         self.randomize_position(occupied_position_stone)
@@ -193,23 +193,27 @@ def main():
     occupied_position_stone = (apple.position, *snake.positions)
     stone = Stone(occupied_position_stone)
     while True:
-        occupied_position_apple = (stone.position, *snake.positions)
         clock.tick(SPEED)
         handle_keys(snake)
         snake.move()
         snake.update_direction(snake.next_direction)
         if apple.position == snake.get_head_position():
+            occupied_position_apple = (stone.position, *snake.positions)
             apple.randomize_position(occupied_position_apple)
             snake.length += 1
         elif snake.get_head_position() in snake.positions[1:]:
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
+            occupied_position_apple = (stone.position, *snake.positions)
             apple.randomize_position(occupied_position_apple)
+            occupied_position_stone = (apple.position, *snake.positions)
             stone.randomize_position(occupied_position_stone)
         elif snake.get_head_position() == stone.position:
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
+            occupied_position_apple = (stone.position, *snake.positions)
             apple.randomize_position(occupied_position_apple)
+            occupied_position_stone = (apple.position, *snake.positions)
             stone.randomize_position(occupied_position_stone)
 
         snake.draw()
