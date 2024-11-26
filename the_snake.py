@@ -69,6 +69,10 @@ class Apple(GameObject):
     def __init__(self, occupied_position_apple=None):
         super().__init__()
         self.body_color = APPLE_COLOR
+        occupied_position_apple = (
+            [] if occupied_position_apple is None
+            else occupied_position_apple
+        )
         self.randomize_position(occupied_position_apple)
 
     def randomize_position(self, occupied_position):
@@ -96,6 +100,10 @@ class Stone(GameObject):
     def __init__(self, occupied_position_stone=None):
         super().__init__()
         self.body_color = STONE_COLOR
+        occupied_position_stone = (
+            [] if occupied_position_stone is None
+            else occupied_position_stone
+        )
         self.randomize_position(occupied_position_stone)
 
     def randomize_position(self, occupied_position_stone):
