@@ -195,7 +195,7 @@ def main():
     """Основная логика игры"""
     pg.init()
     snake = Snake()
-    apple = Apple(*snake.positions)
+    apple = Apple(snake.positions)
     occupied_position_stone = (apple.position, *snake.positions)
     stone = Stone(occupied_position_stone)
     while True:
@@ -211,8 +211,7 @@ def main():
               or snake.get_head_position() in stone.position):
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
-            occupied_position_apple = (snake.positions)
-            apple.randomize_position(occupied_position_apple)
+            apple.randomize_position(snake.positions)
             occupied_position_stone = (apple.position, *snake.positions)
             stone.randomize_position(occupied_position_stone)
 
