@@ -207,14 +207,8 @@ def main():
             occupied_position_apple = (stone.position, *snake.positions)
             apple.randomize_position(occupied_position_apple)
             snake.length += 1
-        elif snake.get_head_position() in snake.positions[1:]:
-            screen.fill(BOARD_BACKGROUND_COLOR)
-            snake.reset()
-            occupied_position_apple = (snake.positions)
-            apple.randomize_position(occupied_position_apple)
-            occupied_position_stone = (apple.position, *snake.positions)
-            stone.randomize_position(occupied_position_stone)
-        elif snake.get_head_position() == stone.position:
+        elif (snake.get_head_position() in snake.positions[1:]
+              or snake.get_head_position() in stone.position):
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
             occupied_position_apple = (snake.positions)
