@@ -69,10 +69,8 @@ class Apple(GameObject):
     def __init__(self, occupied_position_apple=None):
         super().__init__()
         self.body_color = APPLE_COLOR
-        occupied_position_apple = (
-            [] if occupied_position_apple is None
-            else occupied_position_apple
-        )
+        if occupied_position_apple is None:
+            occupied_position_apple = []
         self.randomize_position(occupied_position_apple)
 
     def randomize_position(self, occupied_position):
@@ -197,7 +195,7 @@ def main():
     """Основная логика игры"""
     pg.init()
     snake = Snake()
-    apple = Apple(DEFAULT_CELL)
+    apple = Apple(*snake.positions)
     occupied_position_stone = (apple.position, *snake.positions)
     stone = Stone(occupied_position_stone)
     while True:
@@ -212,14 +210,14 @@ def main():
         elif snake.get_head_position() in snake.positions[1:]:
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
-            occupied_position_apple = (stone.position, *snake.positions)
+            occupied_position_apple = (snake.positions)
             apple.randomize_position(occupied_position_apple)
             occupied_position_stone = (apple.position, *snake.positions)
             stone.randomize_position(occupied_position_stone)
         elif snake.get_head_position() == stone.position:
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
-            occupied_position_apple = (stone.position, *snake.positions)
+            occupied_position_apple = (snake.positions)
             apple.randomize_position(occupied_position_apple)
             occupied_position_stone = (apple.position, *snake.positions)
             stone.randomize_position(occupied_position_stone)
