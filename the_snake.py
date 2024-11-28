@@ -211,12 +211,9 @@ def main():
               or snake.get_head_position() in stone.position):
             screen.fill(BOARD_BACKGROUND_COLOR)
             snake.reset()
-            snake.draw()
             apple.randomize_position(snake.positions)
-            apple.draw()
             occupied_position_stone = (apple.position, *snake.positions)
             stone.randomize_position(occupied_position_stone)
-            stone.draw()
 
         snake.draw()
         stone.draw()
